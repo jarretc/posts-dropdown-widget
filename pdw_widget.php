@@ -38,7 +38,7 @@ class PDW_Widget extends WP_Widget {
 	}
 
 	function form( $instance ) {
-		$defaults = array( 'title' => 'Posts Dropdown', 'number_posts' => 10 );
+		$defaults = array( 'title' => 'Posts Dropdown', 'number_posts' => 10, 'sortby' => 'ASC', 'category' => 1 );
 		$instance = wp_parse_args( (array) $instance, $defaults );
 		$title = $instance['title'];
 		$postsnum = $instance['number_posts'];
@@ -51,7 +51,14 @@ class PDW_Widget extends WP_Widget {
 							<option value="ASC" <?php selected( $sortby, 'ASC' ); ?>>Ascending</option>
 							<option value="DESC" <?php selected( $sortby, 'DESC' ); ?>>Descending</option>
 						</select></p>
-			<p>In category: <?php wp_dropdown_categories( 'hierarchical=true&selected=1&name=category&id=categories' ); ?></p>
+			<p>In category: <?php
+			$catargs = array(
+					'hierarchical' => true,
+					'name' => $this->get_field_name( 'category' ),
+					'selected' => $category,
+					'hide_if_empty' => true
+				);
+			wp_dropdown_categories( $catargs ); ?></p>
 	<?php }
 
 	function update( $new, $old ) {
@@ -77,12 +84,9 @@ class PDW_Widget extends WP_Widget {
 		};
 
 		global $post;
-		$args = array( 'numberposts' => (int) $postsnum, 'order' => $sortby, 'category=' . $category );
+		$args = array( 'numberposts' => (int) $postsnum, 'order' => $sortby, 'category' => (int) $category );
 		$pdw_posts = get_posts( $args );
-		if ( false === ( $pdw_posts = get_transient( 'pdw_posts_query' ) ) ) {
-			$pdw_posts = get_posts( $args );
-			set_transient( 'pdw_posts_query' , $pdw_posts );
-		}
+
 		echo '<select onchange="document.location.href=this.options[this.selectedIndex].value">';
 		$num = 1;
 		foreach ( $pdw_posts as $post ) : setup_postdata($post);
