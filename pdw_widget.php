@@ -43,6 +43,7 @@ class PDW_Widget extends WP_Widget {
 		$title = $instance['title'];
 		$postsnum = $instance['number_posts'];
 		$sortby = $instance['sortby'];
+		$category = $instance['category'];
 		?>
 			<p>Title: <input class="widefat" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>" /></p>
 			<p>Number of posts: <input size="1" name="<?php echo $this->get_field_name( 'number_posts' ); ?>" type="text" value="<?php echo $postsnum; ?>" /> -1 for all posts</p>
@@ -50,6 +51,7 @@ class PDW_Widget extends WP_Widget {
 							<option value="ASC" <?php selected( $sortby, 'ASC' ); ?>>Ascending</option>
 							<option value="DESC" <?php selected( $sortby, 'DESC' ); ?>>Descending</option>
 						</select></p>
+			<p>In category: <?php wp_dropdown_categories( 'hierarchical=true&selected=1&name=category&id=categories' ); ?></p>
 	<?php }
 
 	function update( $new, $old ) {
@@ -57,6 +59,7 @@ class PDW_Widget extends WP_Widget {
 		$settings['title'] = strip_tags( $new['title'] );
 		$settings['number_posts'] = (int) $new['number_posts'];
 		$settings['sortby'] = $new['sortby'];
+		$settings['category'] = $new['category'];
 		return $settings;
 	}
 
@@ -67,17 +70,22 @@ class PDW_Widget extends WP_Widget {
 		$title = apply_filters( 'widget_title', $instance['title'] );
 		$postsnum = $instance['number_posts'];
 		$sortby = $instance['sortby'];
+		$category = $instance['category'];
 
 		if ( !empty( $title) ) {
 			echo $before_title . $title . $after_title;
 		};
 
 		global $post;
-		$args = array( 'numberposts' => (int) $postsnum, 'order' => $sortby );
-		$posts = get_posts( $args );
+		$args = array( 'numberposts' => (int) $postsnum, 'order' => $sortby, 'category=' . $category );
+		$pdw_posts = get_posts( $args );
+		if ( false === ( $pdw_posts = get_transient( 'pdw_posts_query' ) ) ) {
+			$pdw_posts = get_posts( $args );
+			set_transient( 'pdw_posts_query' , $pdw_posts );
+		}
 		echo '<select onchange="document.location.href=this.options[this.selectedIndex].value">';
 		$num = 1;
-		foreach ( $posts as $post ) : setup_postdata($post);
+		foreach ( $pdw_posts as $post ) : setup_postdata($post);
 			echo '<option value="' . get_permalink() . '">';
 			echo ' - ' . $num . the_title();
 			echo '</option>';
