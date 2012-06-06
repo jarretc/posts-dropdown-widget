@@ -5,7 +5,7 @@ Description: Displays a list of your posts in a dropdown list.
 Author: Jarret Cade
 Author URI: http://jarretcade.com
 Version: 1.0
-License: GPLvs or later
+License: GPLv2 or later
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
